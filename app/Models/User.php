@@ -100,5 +100,36 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
 
+    public function chats()
+    {
+        return $this->belongsToMany(Chat::class)->withPivot('last_read_message_id');
+    }
+
+    public function chatmessages()
+    {
+        return $this->hasMany(ChatMessage::class);
+    }
+
+
+    public function projects() {
+        return $this->hasMany(Project::class);
+    }
+
+    public function tasks() {
+        return $this->hasMany(Task::class);
+    }
+
+    public function taskcomments() {
+        return $this->hasMany(TaskComment::class);
+    }
+
+    public function members() {
+        return $this->hasMany(ProjectMember::class);
+    }
+
+    public function statuses() {
+        return $this->hasMany(ProjectStatus::class);
+    }
+
 
 }

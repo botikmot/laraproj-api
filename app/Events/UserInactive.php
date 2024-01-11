@@ -44,4 +44,12 @@ class UserInactive implements ShouldBroadcast
         return 'online-users';
     }
 
+    public function broadcastWith()
+    {
+        return [
+            'user' => $this->user,
+            'status' =>$this->status
+        ];
+    }
+
 }

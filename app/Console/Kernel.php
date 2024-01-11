@@ -5,6 +5,7 @@ namespace App\Console;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
 use App\Models\User;
+use App\Models\UserGroupActivity;
 use Illuminate\Support\Facades\Log;
 use App\Events\UserInactive;
 
@@ -18,11 +19,17 @@ class Kernel extends ConsoleKernel
         $schedule->call(function () {
             $timeoutThreshold = now()->subMinutes(1);//->subMinutes(5); // Adjust the timeout threshold as needed
             $users = User::where('last_seen', '<', $timeoutThreshold)->get();
+            $usergroups = User::where('updated_at', '<', $timeoutThreshold)->get();
             foreach ($users as $user) {
                 $user->update(['last_seen' => null,'online' => false]);
                 $user->load('profile');
                 event(new UserInactive($user, 'offline'));
             }
+
+            foreach ($usergroups as $user) {
+                UserGroupActivity::where('user_id', $user->id)->delete();
+            }
+
         })->everyMinute(); //->everyFiveMinutes(); // Adjust the frequency as needed
     }
 

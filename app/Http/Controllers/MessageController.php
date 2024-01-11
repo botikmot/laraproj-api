@@ -6,7 +6,9 @@ use Illuminate\Http\Request;
 use App\Models\Group;
 use App\Models\Message;
 use App\Events\GroupMessageSent;
+use App\Events\UserRead;
 use App\Models\MessageRead;
+use App\Models\UserGroupActivity;
 use DB;
 
 class MessageController extends Controller
@@ -44,12 +46,14 @@ class MessageController extends Controller
             //$message->load('attachments');
         }
 
-        $message->latest_read = [];
+        $active_users = UserGroupActivity::with('user.profile')->where('group_id', $groupId)->get();
         // Broadcast the GroupMessageSent event
         $message = $message->load('user.profile', 'attachments');
-        event(new GroupMessageSent($message, $groupId));
+        $message->latest_read = $active_users;
 
-        return response()->json(['message' => 'Message sent successfully', 'message' => $message]);
+        event(new GroupMessageSent($message, $groupId, $active_users));
+
+        return response()->json(['message' => 'Message sent successfully', 'data' => $message]);
     }
 
     public function getGroupMessages($groupId)
@@ -63,6 +67,14 @@ class MessageController extends Controller
         }
         // Fetch all messages for the group
         $messages = Message::where('group_id', $groupId)->orderBy('created_at', 'desc')->paginate(20);
+
+         // Update user activity in the group
+        UserGroupActivity::updateOrCreate(
+            ['user_id' => $user->id],
+            ['group_id' => $groupId, 'updated_at' => now()]
+        );
+
+        event(new UserRead($groupId, $user->load('profile')));
 
         // Mark all unread messages in the group chat as read for the user
         $unreadMessages = $group->unreadMessagesForUser($user);

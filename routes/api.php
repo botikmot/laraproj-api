@@ -10,6 +10,11 @@ use App\Http\Controllers\PostCommentController;
 use App\Http\Controllers\GroupController;
 use App\Http\Controllers\MessageController;
 use App\Http\Controllers\PrivateMessageController;
+use App\Http\Controllers\ChatController;
+use App\Http\Controllers\ProjectController;
+use App\Http\Controllers\ProjectStatusController;
+use App\Http\Controllers\ProjectMemberController;
+use App\Http\Controllers\TaskController;
 
 /*
 |--------------------------------------------------------------------------
@@ -43,6 +48,7 @@ Route::middleware(['auth'])->group(function () {
 
     Route::post('/create-group', [GroupController::class, 'createGroup'])->name('create-group');
     Route::get('/groups', [GroupController::class, 'getUserGroups'])->name('get-user-group');
+    Route::post('/remove-user-from-group-activity', [GroupController::class, 'removeUser'])->name('remove-user-group');
 
     Route::post('/group-message/{groupId}', [MessageController::class, 'sendMessageToGroup'])->name('group-message');
     Route::get('/group-messages/{groupId}', [MessageController::class, 'getGroupMessages'])->name('group-messages');
@@ -52,9 +58,40 @@ Route::middleware(['auth'])->group(function () {
 
     Route::post('/send-private-message/{recipientId}', [PrivateMessageController::class, 'sendPrivateMessage'])->name('send-private-message');
     Route::get('/get-private-messages', [PrivateMessageController::class, 'getPrivateMessages'])->name('get-private-messages');
+    Route::get('/get-recipient-messages/{recipientId}', [PrivateMessageController::class, 'getRecipientMessages'])->name('get-recipient-messages');
+    Route::get('/get-recipients', [PrivateMessageController::class, 'getRecipients'])->name('get-recipients');
+
+
+    // Create private chat
+    Route::post('/chats/private/{user1}/{user2}', [ChatController::class, 'createPrivateChat']);
+
+    // Create group chat
+    Route::post('/chats/group', [ChatController::class, 'createGroupChat']);
+
+    // get User chats
+    Route::get('/user/chats', [ChatController::class, 'getUserChats']);
+
+    // Send a message
+    Route::post('/chats/{chat}/send-message', [ChatController::class, 'sendMessage']);
+
+    // get chat messages
+    Route::get('/chats/{chat}/messages', [ChatController::class, 'getChatMessages']);
+
+    // User auto seen a message
+    Route::post('/chats/{chat}/{message}/seen-message', [ChatController::class, 'seenMessage']);
+
+    //-------------------------- PROJECT ---------------------------------------//
+
+    Route::post('/project', [ProjectController::class, 'store']);
+    Route::get('/projects', [ProjectController::class, 'fetchUserProjects']);
+    Route::post('/project-status/{projectId}', [ProjectController::class, 'addStatus']);
+    Route::get('/project/{id}', [ProjectController::class, 'showProject']);
+    Route::post('/project/{id}/task', [ProjectController::class, 'addTask']);
+    Route::post('/project/{id}/member', [ProjectMemberController::class, 'addMember']);
+    Route::delete('/project/{id}/status', [ProjectStatusController::class, 'removeStatus']);
+    Route::put('/project/{id}/task', [TaskController::class, 'updateTask']);
+    Route::delete('/project/task/{id}', [TaskController::class, 'removeTask']);
+    Route::post('/task/{taskId}/comment', [TaskController::class, 'saveComment']);
+    Route::post('/task/{taskId}/assigned', [TaskController::class, 'assignedUsers']);
 
 });
-
-
-
-

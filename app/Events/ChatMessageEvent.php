@@ -10,7 +10,7 @@ use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 
-class GroupMessageSent implements ShouldBroadcast
+class ChatMessageEvent implements ShouldBroadcast
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
@@ -18,14 +18,10 @@ class GroupMessageSent implements ShouldBroadcast
      * Create a new event instance.
      */
     public $message;
-    public $groupId;
-    public $activeUsers;
 
-    public function __construct($message, $groupId, $activeUsers)
+    public function __construct($message)
     {
         $this->message = $message;
-        $this->groupId = $groupId;
-        $this->activeUsers = $activeUsers;
     }
 
     /**
@@ -35,7 +31,7 @@ class GroupMessageSent implements ShouldBroadcast
      */
     public function broadcastOn()
     {
-        return new Channel('group.' . $this->groupId);
+        return new Channel('chat');
         /* return [
             new PrivateChannel('channel-name'),
         ]; */
@@ -43,24 +39,13 @@ class GroupMessageSent implements ShouldBroadcast
 
     public function broadcastAs()
     {
-        return 'group-message';
+        return 'chat-message';
     }
 
     public function broadcastWith()
     {
-        // Include the user.profile data for each active user
-        $activeUsersWithProfile = $this->activeUsers->map(function ($userGroupActivity) {
-            return [
-                'user' => $userGroupActivity->user,
-                'profile' => $userGroupActivity->user->profile,
-                // Add other fields as needed
-            ];
-        });
-
         return [
-            'activeUsers' => $activeUsersWithProfile,
-            'message' => $this->message,
-            'groupId' => $this->groupId
+            'message' => $this->message
         ];
     }
 

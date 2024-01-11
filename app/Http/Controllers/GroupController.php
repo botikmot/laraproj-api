@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Group;
 use App\Models\User;
+use App\Models\UserGroupActivity;
 
 class GroupController extends Controller
 {
@@ -83,6 +84,13 @@ class GroupController extends Controller
         $users = User::where('id', '!=', $currentUser->id)->get();
         $users->load('profile');
         return response()->json(['users' => $users]);
+    }
+
+    public function removeUser(Request $request)
+    {
+        $userId = $request->input('userId');
+        UserGroupActivity::where('user_id', $userId)->delete();
+        return response()->json(['message' => 'User removed from group activity successfully']);
     }
 
 

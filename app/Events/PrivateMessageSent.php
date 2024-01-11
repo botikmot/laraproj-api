@@ -10,7 +10,7 @@ use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 
-class GroupMessageSent implements ShouldBroadcast
+class PrivateMessageSent implements ShouldBroadcast
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
@@ -18,14 +18,12 @@ class GroupMessageSent implements ShouldBroadcast
      * Create a new event instance.
      */
     public $message;
-    public $groupId;
-    public $activeUsers;
+    public $recipientId;
 
-    public function __construct($message, $groupId, $activeUsers)
+    public function __construct($message, $recipientId)
     {
         $this->message = $message;
-        $this->groupId = $groupId;
-        $this->activeUsers = $activeUsers;
+        $this->recipientId = $recipientId;
     }
 
     /**
@@ -35,33 +33,23 @@ class GroupMessageSent implements ShouldBroadcast
      */
     public function broadcastOn()
     {
-        return new Channel('group.' . $this->groupId);
-        /* return [
-            new PrivateChannel('channel-name'),
-        ]; */
+        //return new Channel('recipient.' . $this->recipientId);
+        return [
+            new PrivateChannel('sender'),
+            new PrivateChannel('recipient'),
+        ];
     }
 
     public function broadcastAs()
     {
-        return 'group-message';
+        return 'private-message';
     }
 
     public function broadcastWith()
     {
-        // Include the user.profile data for each active user
-        $activeUsersWithProfile = $this->activeUsers->map(function ($userGroupActivity) {
-            return [
-                'user' => $userGroupActivity->user,
-                'profile' => $userGroupActivity->user->profile,
-                // Add other fields as needed
-            ];
-        });
-
         return [
-            'activeUsers' => $activeUsersWithProfile,
+            'recipientId' => $this->recipientId,
             'message' => $this->message,
-            'groupId' => $this->groupId
         ];
     }
-
 }

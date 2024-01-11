@@ -19,4 +19,9 @@ class PrivateMessage extends Model
     {
         return $this->belongsTo(User::class, 'recipient_id');
     }
+
+    public function attachments()
+    {
+        return $this->morphMany(Attachment::class, 'attachable');
+    }
 }
